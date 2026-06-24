@@ -1705,18 +1705,56 @@ async function reviewLeave(id, status) {
 
 async function loadReports() {
   populateMonthYearSelects('rpt');
+
+  const thead = document.querySelector('#page-reports .data-table thead');
+  if (currentUser.Role === 'admin') {
+    thead.innerHTML = '<tr><th>Employee</th><th>Department</th><th>Days Present</th><th>Leave Days</th><th>Total Hours</th><th>Avg Hours/Day</th></tr>';
+  } else {
+    thead.innerHTML = '<tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Net Hours</th><th>Break Time</th><th>Status</th></tr>';
+  }
+
   if (!API_URL) return;
   generateReport();
 }
 
 async function generateReport() {
   try {
-    const data = await api('getMonthlyReport', {
-      month: document.getElementById('rpt-month').value,
-      year: document.getElementById('rpt-year').value
-    });
-    renderReport(data);
+    if (currentUser.Role === 'admin') {
+      const data = await api('getMonthlyReport', {
+        month: document.getElementById('rpt-month').value,
+        year: document.getElementById('rpt-year').value
+      });
+      renderReport(data);
+    } else {
+      const data = await api('getEmployeeReport', {
+        employeeId: currentUser.ID,
+        month: document.getElementById('rpt-month').value,
+        year: document.getElementById('rpt-year').value
+      });
+      renderEmployeeReport(data);
+    }
   } catch { toast('Could not load report', 'error'); }
+}
+
+function renderEmployeeReport(data) {
+  const tbody = document.getElementById('report-tbody');
+  const summaryEl = document.getElementById('report-summary');
+  if (!data || !data.summary) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No data for this period</td></tr>';
+    summaryEl.innerHTML = '';
+    return;
+  }
+  const s = data.summary;
+  summaryEl.innerHTML =
+    '<div class="stat-card"><div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-info"><span class="stat-label">Work Hours</span><span class="stat-value">' + s.totalWorkHours + '</span></div></div>' +
+    '<div class="stat-card"><div class="stat-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg></div><div class="stat-info"><span class="stat-label">Days Present</span><span class="stat-value">' + s.daysPresent + '</span></div></div>' +
+    '<div class="stat-card"><div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="stat-info"><span class="stat-label">Avg/Day</span><span class="stat-value">' + s.avgHoursPerDay + 'h</span></div></div>';
+
+  const att = data.attendance || [];
+  tbody.innerHTML = att.map(r =>
+    '<tr><td>' + san(r.Date) + '</td><td>' + san(r.CheckIn || '--') + '</td><td>' + san(r.CheckOut || '--') + '</td><td>' + fmtMin(r.NetMinutes) + '</td><td>' + fmtMin(r.BreakMinutes) + '</td><td><span class="badge badge-' + (r.Status || 'checked-in') + '">' + san(r.Status) + '</span></td></tr>'
+  ).join('');
+  if (!att.length) tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No attendance data</td></tr>';
 }
 
 function renderReport(data) {
