@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>0-Waste Work Processor</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#d4748a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Work Processor">
+  <link rel="apple-touch-icon" href="images/3R LOGO.jpg">
+  <meta name="description" content="Attendance & Hours Tracker with auto-idle breaks, tasks, and team management">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Sakura Petals / Rain Drops -->
+  <div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div>
+  <div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div>
+
+  <!-- Rain overlay (visible in morning) -->
+  <div class="rain-overlay" id="rain-overlay">
+    <div class="rain-column"></div><div class="rain-column"></div><div class="rain-column"></div>
+    <div class="rain-column"></div><div class="rain-column"></div><div class="rain-column"></div>
+    <div class="rain-column"></div><div class="rain-column"></div><div class="rain-column"></div>
+    <div class="rain-column"></div><div class="rain-column"></div><div class="rain-column"></div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="images/3R LOGO.jpg" alt="0-Waste" class="brand-logo animate-float" onerror="this.style.display='none'">
+        <h1>0-Waste Work Processor</h1>
+        <p>Attendance & Hours Tracker</p>
+      </div>
+      <!-- Step 1: Email -->
+      <div class="login-form" id="login-step-email">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email">
+        <button id="send-otp-btn" class="btn btn-primary btn-full">Send OTP</button>
+        <p id="login-error" class="error-text"></p>
+      </div>
+      <!-- Step 2: OTP -->
+      <div class="login-form" id="login-step-otp" style="display:none">
+        <p class="otp-info">Enter the 6-digit code sent to <strong id="otp-sent-email"></strong></p>
+        <div class="otp-inputs" id="otp-inputs">
+          <input type="text" maxlength="1" class="otp-digit" data-idx="0" inputmode="numeric" autocomplete="one-time-code">
+          <input type="text" maxlength="1" class="otp-digit" data-idx="1" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit" data-idx="2" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit" data-idx="3" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit" data-idx="4" inputmode="numeric">
+          <input type="text" maxlength="1" class="otp-digit" data-idx="5" inputmode="numeric">
+        </div>
+        <button id="verify-otp-btn" class="btn btn-primary btn-full">Verify & Sign In</button>
+        <div class="otp-actions">
+          <button id="resend-otp-btn" class="btn btn-ghost btn-sm">Resend OTP</button>
+          <button id="change-email-btn" class="btn btn-ghost btn-sm">Change Email</button>
+        </div>
+        <p id="otp-error" class="error-text"></p>
+        <p id="otp-timer" class="otp-timer-text"></p>
+      </div>
+      <div class="login-footer">
+        <p>Default admin: <strong>admin@company.com</strong></p>
+        <p class="login-note">A one-time password will be sent to your registered email</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app" class="app hidden">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="images/logo.png" alt="0-Waste" class="sidebar-logo" onerror="this.style.display='none'">
+        <span class="sidebar-title">0-Waste</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-page="dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#attendance" class="nav-item" data-page="attendance">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+          Attendance
+        </a>
+        <a href="#leaves" class="nav-item" data-page="leaves">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Leaves
+        </a>
+        <a href="#reports" class="nav-item" data-page="reports">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Reports
+        </a>
+        <a href="#employees" class="nav-item admin-only" data-page="employees">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Employees
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div class="user-details">
+            <span id="user-name">Admin</span>
+            <span id="user-role" class="badge">admin</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
+      </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <header class="mobile-header">
+      <button id="menu-toggle" class="btn btn-ghost">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span>Work Processor</span>
+      <button id="logout-btn-mobile" class="btn btn-ghost btn-sm">Logout</button>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- DASHBOARD PAGE -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+          <span class="date-display" id="current-date"></span>
+        </div>
+
+        <!-- LIVE CLOCK WIDGET -->
+        <div class="clock-widget" id="clock-widget">
+          <div class="clock-top">
+            <div class="clock-current">
+              <span class="clock-time" id="clock-current-time">00:00:00</span>
+              <span class="clock-date" id="clock-current-date"></span>
+            </div>
+            <div class="clock-status" id="clock-status">
+              <span class="status-dot not-checked-in" id="status-dot"></span>
+              <span class="status-text" id="status-text">Not Checked In</span>
+            </div>
+          </div>
+
+          <!-- Before Check-in -->
+          <div id="clock-before-checkin" class="clock-action-area">
+            <p class="clock-prompt">Ready to start your day?</p>
+            <button id="dash-checkin-btn" class="btn btn-primary btn-lg clock-btn">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Clock In
+            </button>
+          </div>
+
+          <!-- Mood Selector (shown after clicking Clock In) -->
+          <div id="mood-selector" class="mood-selector" style="display:none">
+            <p class="mood-title">How are you feeling today?</p>
+            <div class="mood-options">
+              <button class="mood-btn" data-mood="energized" title="Energized">&#9889;<span>Energized</span></button>
+              <button class="mood-btn" data-mood="happy" title="Happy">&#128522;<span>Happy</span></button>
+              <button class="mood-btn" data-mood="neutral" title="Neutral">&#128528;<span>Neutral</span></button>
+              <button class="mood-btn" data-mood="tired" title="Tired">&#128564;<span>Tired</span></button>
+              <button class="mood-btn" data-mood="stressed" title="Stressed">&#128552;<span>Stressed</span></button>
+            </div>
+            <div class="standup-note">
+              <label>What are you working on today?</label>
+              <input type="text" id="standup-input" class="input" placeholder="e.g. Finishing dashboard design...">
+            </div>
+            <button id="mood-confirm-btn" class="btn btn-primary btn-full">Start Working</button>
+          </div>
+
+          <!-- After Check-in: Work Timer -->
+          <div id="clock-working" style="display:none">
+            <div class="clock-timers">
+              <div class="clock-timer-box main-timer">
+                <span class="clock-timer-label">Work Time</span>
+                <span class="clock-timer-value" id="work-timer">00:00:00</span>
+              </div>
+              <div class="clock-timer-box break-timer-box">
+                <span class="clock-timer-label">Break Time</span>
+                <span class="clock-timer-value" id="break-timer-total">00:00</span>
+              </div>
+              <div class="clock-timer-box net-timer-box">
+                <span class="clock-timer-label">Net Work</span>
+                <span class="clock-timer-value" id="net-work-timer">00:00:00</span>
+              </div>
+            </div>
+
+            <!-- Activity Monitor -->
+            <div class="activity-monitor" id="activity-monitor">
+              <div class="activity-row">
+                <div class="activity-metric">
+                  <span class="activity-label">Productivity</span>
+                  <div class="activity-score-ring">
+                    <svg viewBox="0 0 36 36" class="score-ring">
+                      <path class="score-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                      <path class="score-ring-fill" id="score-ring-fill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <span class="score-value" id="productivity-score">0%</span>
+                  </div>
+                </div>
+                <div class="activity-metric">
+                  <span class="activity-label">Activity Level</span>
+                  <div class="activity-bars" id="activity-bars">
+                    <div class="a-bar"></div><div class="a-bar"></div><div class="a-bar"></div><div class="a-bar"></div><div class="a-bar"></div>
+                  </div>
+                  <span class="activity-level-text" id="activity-level-text">Idle</span>
+                </div>
+                <div class="activity-metric">
+                  <span class="activity-label">Tab Focus</span>
+                  <span class="focus-value" id="focus-value">100%</span>
+                  <span class="focus-detail" id="focus-detail">Focused</span>
+                </div>
+                <div class="activity-metric">
+                  <span class="activity-label">Actions/min</span>
+                  <span class="focus-value" id="events-per-min">0</span>
+                  <span class="focus-detail" id="events-trend">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="clock-idle-bar" id="idle-bar" style="display:none">
+              <span class="idle-pulse"></span>
+              <span>Idle detected — break auto-started</span>
+            </div>
+
+            <div class="clock-actions">
+              <button id="dash-checkout-btn" class="btn btn-danger">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Clock Out
+              </button>
+              <button id="dash-break-btn" class="btn btn-warning">
+                <span id="break-btn-text">Start Break</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- After Check-out -->
+          <div id="clock-completed" style="display:none">
+            <div class="clock-summary">
+              <div class="summary-pill"><span>Checked In</span><strong id="summary-checkin">--</strong></div>
+              <div class="summary-pill"><span>Checked Out</span><strong id="summary-checkout">--</strong></div>
+              <div class="summary-pill"><span>Net Work</span><strong id="summary-net">--</strong></div>
+              <div class="summary-pill"><span>Breaks</span><strong id="summary-breaks">--</strong></div>
+            </div>
+            <p class="sync-status" id="sync-status"></p>
+          </div>
+        </div>
+
+        <!-- Breaks Log -->
+        <div class="section" id="today-breaks-section" style="display:none">
+          <h3>Today's Breaks</h3>
+          <div id="today-breaks-list" class="breaks-list"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">This Month</span>
+              <span class="stat-value" id="dash-month-hours">0 hrs</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Days Worked</span>
+              <span class="stat-value" id="dash-days-worked">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Team Today</span>
+              <span class="stat-value" id="dash-team-today">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Zen Quote -->
+        <div class="zen-quote-card" id="zen-quote-card">
+          <span class="zen-quote-icon">&#9775;</span>
+          <blockquote id="zen-quote-text"></blockquote>
+          <cite id="zen-quote-author"></cite>
+        </div>
+
+        <!-- Ambient Focus Sounds -->
+        <div class="section" id="ambient-section" style="display:none">
+          <h3>Focus Sounds</h3>
+          <div class="ambient-grid">
+            <button class="ambient-btn" data-sound="rain" id="snd-rain">
+              <span class="ambient-icon">&#127783;</span><span>Rain</span>
+            </button>
+            <button class="ambient-btn" data-sound="forest" id="snd-forest">
+              <span class="ambient-icon">&#127795;</span><span>Forest</span>
+            </button>
+            <button class="ambient-btn" data-sound="cafe" id="snd-cafe">
+              <span class="ambient-icon">&#9749;</span><span>Cafe</span>
+            </button>
+            <button class="ambient-btn" data-sound="waves" id="snd-waves">
+              <span class="ambient-icon">&#127754;</span><span>Waves</span>
+            </button>
+            <button class="ambient-btn" data-sound="wind" id="snd-wind">
+              <span class="ambient-icon">&#127744;</span><span>Wind</span>
+            </button>
+            <button class="ambient-btn" data-sound="birds" id="snd-birds">
+              <span class="ambient-icon">&#128038;</span><span>Birds</span>
+            </button>
+          </div>
+          <div class="ambient-controls" id="ambient-controls" style="display:none">
+            <span id="ambient-now-playing">Now playing: --</span>
+            <input type="range" id="ambient-volume" min="0" max="100" value="50" class="ambient-slider">
+            <button id="ambient-stop" class="btn btn-ghost btn-sm">Stop</button>
+          </div>
+        </div>
+
+        <!-- Kudos / Appreciation -->
+        <div class="section" id="kudos-section">
+          <h3>Send Kudos</h3>
+          <div class="kudos-card">
+            <div class="kudos-input-row">
+              <select id="kudos-to" class="input">
+                <option value="">Select teammate...</option>
+              </select>
+              <input type="text" id="kudos-msg" class="input kudos-field" placeholder="Great job on...">
+              <button id="send-kudos-btn" class="btn btn-primary btn-sm">Send</button>
+            </div>
+            <div id="kudos-feed" class="kudos-feed"></div>
+          </div>
+        </div>
+
+        <!-- Streak & Badges -->
+        <div class="section" id="streak-section">
+          <div class="streak-banner">
+            <div class="streak-fire">
+              <span class="streak-emoji" id="streak-emoji">&#128293;</span>
+              <div>
+                <span class="streak-count" id="streak-count">0</span>
+                <span class="streak-label">Day Streak</span>
+              </div>
+            </div>
+            <div class="streak-msg" id="streak-msg">Clock in on time to start your streak!</div>
+          </div>
+          <div class="badges-grid" id="badges-grid"></div>
+        </div>
+
+        <!-- Pomodoro Focus Timer -->
+        <div class="section" id="pomodoro-section" style="display:none">
+          <h3>Focus Session (Pomodoro)</h3>
+          <div class="pomo-card">
+            <div class="pomo-display">
+              <svg class="pomo-ring" viewBox="0 0 100 100">
+                <circle class="pomo-ring-bg" cx="50" cy="50" r="45"/>
+                <circle class="pomo-ring-fill" id="pomo-ring-fill" cx="50" cy="50" r="45"/>
+              </svg>
+              <div class="pomo-center">
+                <span class="pomo-time" id="pomo-time">25:00</span>
+                <span class="pomo-phase" id="pomo-phase">Focus</span>
+              </div>
+            </div>
+            <div class="pomo-info">
+              <span>Sessions today: <strong id="pomo-count">0</strong></span>
+              <span>Deep work: <strong id="pomo-deep-work">0m</strong></span>
+            </div>
+            <div class="pomo-actions">
+              <button id="pomo-start-btn" class="btn btn-primary">Start Focus</button>
+              <button id="pomo-stop-btn" class="btn btn-ghost" style="display:none">Stop</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Live Pulse -->
+        <div class="section admin-only" id="team-pulse-section">
+          <h3>Team Live Pulse</h3>
+          <div class="pulse-grid" id="pulse-grid">
+            <div class="empty-state">Loading team status...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE PAGE -->
+      <div id="page-attendance" class="page">
+        <div class="page-header">
+          <h2>Attendance & Tasks</h2>
+          <div class="filters">
+            <select id="att-employee-filter" class="input admin-only" style="display:none">
+              <option value="all">All Employees</option>
+            </select>
+            <select id="att-month" class="input"></select>
+            <select id="att-year" class="input"></select>
+            <button id="att-filter-btn" class="btn btn-primary">Filter</button>
+          </div>
+        </div>
+
+        <!-- My Tasks Today -->
+        <div class="card" id="task-card">
+          <h3>My Tasks Today</h3>
+          <div class="task-input-row">
+            <input type="text" id="task-input" class="input task-field" placeholder="What did you work on? (press Enter to add)">
+            <select id="task-status-input" class="input">
+              <option value="done">Done</option>
+              <option value="in-progress">In Progress</option>
+              <option value="blocked">Blocked</option>
+            </select>
+            <button id="add-task-btn" class="btn btn-primary">Add</button>
+          </div>
+          <div id="task-list" class="task-list"></div>
+        </div>
+
+        <!-- Team Tasks Today (Admin) -->
+        <div class="card admin-only" id="team-tasks-card" style="display:none">
+          <h3>Team Tasks Today</h3>
+          <div id="team-tasks-list" class="task-list"></div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-wrapper">
+          <table class="data-table" id="attendance-table">
+            <thead id="att-thead"></thead>
+            <tbody id="attendance-tbody"></tbody>
+          </table>
+        </div>
+        <div class="attendance-summary" id="att-summary"></div>
+      </div>
+
+      <!-- LEAVES PAGE -->
+      <div id="page-leaves" class="page">
+        <div class="page-header">
+          <h2>Leave Management</h2>
+          <button id="apply-leave-btn" class="btn btn-primary">+ Apply Leave</button>
+        </div>
+
+        <!-- Leave Application Modal Content (shown inline) -->
+        <div id="leave-form-section" class="card" style="display:none">
+          <h3>Apply for Leave</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Leave Type</label>
+              <select id="leave-type" class="input">
+                <option value="casual">Casual Leave</option>
+                <option value="sick">Sick Leave</option>
+                <option value="earned">Earned Leave</option>
+                <option value="half-day">Half Day</option>
+                <option value="wfh">Work From Home</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="date" id="leave-start" class="input">
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <input type="date" id="leave-end" class="input">
+            </div>
+            <div class="form-group full-width">
+              <label>Reason</label>
+              <textarea id="leave-reason" class="input" rows="3" placeholder="Reason for leave..."></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button id="submit-leave-btn" class="btn btn-primary">Submit</button>
+            <button id="cancel-leave-btn" class="btn btn-ghost">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Leave Requests (admin) -->
+        <div id="leave-requests-section" class="section admin-only">
+          <h3>Pending Requests</h3>
+          <div id="leave-requests-list" class="cards-list"></div>
+        </div>
+
+        <!-- My Leaves -->
+        <div class="section">
+          <h3>My Leave History</h3>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Days</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="leaves-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS PAGE -->
+      <div id="page-reports" class="page">
+        <div class="page-header">
+          <h2>Reports</h2>
+          <div class="filters">
+            <select id="rpt-month" class="input"></select>
+            <select id="rpt-year" class="input"></select>
+            <button id="rpt-filter-btn" class="btn btn-primary">Generate</button>
+            <button id="rpt-export-btn" class="btn btn-ghost">Export CSV</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="report-summary"></div>
+
+        <div class="section">
+          <div class="chart-container">
+            <canvas id="report-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Detailed Report</h3>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Days Present</th>
+                  <th>Leave Days</th>
+                  <th>Total Hours</th>
+                  <th>Avg Hours/Day</th>
+                </tr>
+              </thead>
+              <tbody id="report-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOYEES PAGE (Admin) -->
+      <div id="page-employees" class="page admin-only">
+        <div class="page-header">
+          <h2>Employee Management</h2>
+          <button id="add-employee-btn" class="btn btn-primary">+ Add Employee</button>
+        </div>
+
+        <div id="employee-form-section" class="card" style="display:none">
+          <h3 id="emp-form-title">Add Employee</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="emp-name" class="input" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="emp-email" class="input" placeholder="john@company.com">
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <input type="text" id="emp-dept" class="input" placeholder="Engineering">
+            </div>
+            <div class="form-group">
+              <label>Role</label>
+              <select id="emp-role" class="input">
+                <option value="employee">Employee</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button id="submit-emp-btn" class="btn btn-primary">Add Employee</button>
+            <button id="cancel-emp-btn" class="btn btn-ghost">Cancel</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employees-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- OVERLAY -->
+  <div id="overlay" class="overlay hidden"></div>
+
+  <!-- Stretch Reminder Modal -->
+  <div id="stretch-modal" class="stretch-modal" style="display:none">
+    <div class="stretch-card">
+      <span class="stretch-close" id="stretch-close">&times;</span>
+      <span class="stretch-icon" id="stretch-icon">&#129495;</span>
+      <h3 id="stretch-title">Time to Stretch!</h3>
+      <p id="stretch-desc">You've been working a while. Try this quick exercise:</p>
+      <div class="stretch-exercise" id="stretch-exercise"></div>
+      <button id="stretch-done-btn" class="btn btn-primary btn-full">Done! Back to work</button>
+    </div>
+  </div>
+
+  <!-- Zen Elements -->
+  <div class="zen-koi" id="zen-koi">
+    <svg viewBox="0 0 80 30" class="koi-svg">
+      <ellipse cx="30" cy="15" rx="22" ry="10" fill="#e88" opacity=".7"/>
+      <ellipse cx="30" cy="15" rx="18" ry="8" fill="#f99"/>
+      <circle cx="20" cy="12" r="2" fill="#333"/>
+      <path d="M52,15 Q62,5 70,15 Q62,25 52,15Z" fill="#e88" opacity=".6"/>
+    </svg>
+  </div>
+  <div class="zen-moon" id="zen-moon"></div>
+  <div class="zen-stars" id="zen-stars">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
