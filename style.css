@@ -91,14 +91,18 @@ body::before, body::after {
   opacity: 0;
 }
 
-.petal:nth-child(1) { left: 10%; animation: petalFall1 12s ease-in-out infinite 0s; }
-.petal:nth-child(2) { left: 25%; animation: petalFall2 15s ease-in-out infinite 2s; }
-.petal:nth-child(3) { left: 45%; animation: petalFall1 18s ease-in-out infinite 5s; }
-.petal:nth-child(4) { left: 65%; animation: petalFall3 14s ease-in-out infinite 1s; }
-.petal:nth-child(5) { left: 80%; animation: petalFall2 16s ease-in-out infinite 4s; }
-.petal:nth-child(6) { left: 90%; animation: petalFall1 13s ease-in-out infinite 7s; }
-.petal:nth-child(7) { left: 35%; animation: petalFall3 17s ease-in-out infinite 3s; width: 10px; height: 10px; }
-.petal:nth-child(8) { left: 55%; animation: petalFall2 19s ease-in-out infinite 6s; width: 8px; height: 8px; }
+.petal:nth-child(1)  { left: 5%;  animation: petalFall1 11s ease-in-out infinite 0s; }
+.petal:nth-child(2)  { left: 15%; animation: petalFall2 14s ease-in-out infinite 1.5s; }
+.petal:nth-child(3)  { left: 25%; animation: petalFall1 17s ease-in-out infinite 4s; }
+.petal:nth-child(4)  { left: 35%; animation: petalFall3 13s ease-in-out infinite 0.8s; }
+.petal:nth-child(5)  { left: 45%; animation: petalFall2 15s ease-in-out infinite 3s; }
+.petal:nth-child(6)  { left: 55%; animation: petalFall1 12s ease-in-out infinite 6s; }
+.petal:nth-child(7)  { left: 65%; animation: petalFall3 16s ease-in-out infinite 2s; width: 10px; height: 10px; }
+.petal:nth-child(8)  { left: 75%; animation: petalFall2 18s ease-in-out infinite 5s; width: 8px; height: 8px; }
+.petal:nth-child(9)  { left: 85%; animation: petalFall1 14s ease-in-out infinite 1s; width: 10px; height: 10px; }
+.petal:nth-child(10) { left: 92%; animation: petalFall3 13s ease-in-out infinite 3.5s; width: 9px; height: 9px; }
+.petal:nth-child(11) { left: 20%; animation: petalFall2 16s ease-in-out infinite 7s; width: 7px; height: 7px; }
+.petal:nth-child(12) { left: 70%; animation: petalFall1 15s ease-in-out infinite 2.5s; }
 
 /* ============================================================
    GLOBAL ANIMATIONS
@@ -1571,3 +1575,235 @@ body[data-season="winter"]:not([data-time="night"]) {
 }
 
 body[data-season="winter"] .zen-koi { opacity: .15; }
+
+/* ============================================================
+   ALIVE LANDSCAPE — Mountains, Sun, Clouds
+   ============================================================ */
+
+.zen-landscape {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 180px;
+  pointer-events: none;
+  z-index: 9994;
+  overflow: hidden;
+}
+
+/* Mountains */
+.mountain {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50% 50% 0 0;
+}
+
+.mountain.m1 {
+  width: 500px; height: 120px;
+  left: -50px;
+  background: linear-gradient(180deg, rgba(120,140,130,.08) 0%, rgba(100,120,110,.04) 100%);
+}
+
+.mountain.m2 {
+  width: 400px; height: 90px;
+  right: 100px;
+  background: linear-gradient(180deg, rgba(130,150,140,.06) 0%, rgba(110,130,120,.03) 100%);
+}
+
+.mountain.m3 {
+  width: 600px; height: 70px;
+  left: 30%;
+  background: linear-gradient(180deg, rgba(140,160,150,.05) 0%, transparent 100%);
+}
+
+/* Sun/Moon in landscape */
+.zen-sun {
+  position: absolute;
+  top: 10px; right: 15%;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #ffe8a0, #ffd060);
+  box-shadow: 0 0 40px rgba(255,208,96,.2), 0 0 80px rgba(255,208,96,.1);
+  animation: float 8s ease-in-out infinite;
+  opacity: .5;
+}
+
+/* Clouds */
+@keyframes cloudDrift {
+  0%   { transform: translateX(-200px); }
+  100% { transform: translateX(calc(100vw + 200px)); }
+}
+
+.zen-clouds { position: absolute; inset: 0; }
+
+.cloud {
+  position: absolute;
+  background: rgba(255,255,255,.15);
+  border-radius: 50px;
+  animation: cloudDrift linear infinite;
+}
+
+.cloud::before, .cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+
+.cloud.c1 {
+  width: 100px; height: 30px;
+  top: 15px;
+  animation-duration: 45s;
+  animation-delay: 0s;
+}
+.cloud.c1::before { width: 40px; height: 40px; top: -15px; left: 15px; }
+.cloud.c1::after { width: 50px; height: 35px; top: -10px; left: 40px; }
+
+.cloud.c2 {
+  width: 80px; height: 24px;
+  top: 40px;
+  animation-duration: 60s;
+  animation-delay: -20s;
+  opacity: .7;
+}
+.cloud.c2::before { width: 30px; height: 30px; top: -12px; left: 12px; }
+.cloud.c2::after { width: 35px; height: 28px; top: -8px; left: 35px; }
+
+.cloud.c3 {
+  width: 120px; height: 28px;
+  top: 25px;
+  animation-duration: 55s;
+  animation-delay: -35s;
+  opacity: .5;
+}
+.cloud.c3::before { width: 45px; height: 45px; top: -18px; left: 20px; }
+.cloud.c3::after { width: 55px; height: 38px; top: -12px; left: 50px; }
+
+/* ============================================================
+   FIREFLIES (evening only)
+   ============================================================ */
+
+.fireflies { display: none; }
+
+@keyframes fireflyFloat {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: .8; }
+  50%  { opacity: .3; }
+  85%  { opacity: .9; }
+  100% { transform: translate(var(--fx), var(--fy)); opacity: 0; }
+}
+
+body[data-time="evening"] .fireflies {
+  display: block;
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 9996;
+}
+
+body[data-time="evening"] .fireflies span {
+  position: absolute;
+  width: 5px; height: 5px;
+  background: radial-gradient(circle, #ffe88a, #ffcc00, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ffe88a, 0 0 16px rgba(255,204,0,.3);
+  animation: fireflyFloat ease-in-out infinite;
+}
+
+body[data-time="evening"] .fireflies span:nth-child(1)  { top: 30%; left: 20%; --fx: 80px;  --fy: -60px;  animation-duration: 6s;  animation-delay: 0s; }
+body[data-time="evening"] .fireflies span:nth-child(2)  { top: 50%; left: 40%; --fx: -50px; --fy: -80px;  animation-duration: 8s;  animation-delay: 1s; }
+body[data-time="evening"] .fireflies span:nth-child(3)  { top: 70%; left: 60%; --fx: 60px;  --fy: 40px;   animation-duration: 7s;  animation-delay: 2s; }
+body[data-time="evening"] .fireflies span:nth-child(4)  { top: 40%; left: 75%; --fx: -70px; --fy: -50px;  animation-duration: 9s;  animation-delay: .5s; }
+body[data-time="evening"] .fireflies span:nth-child(5)  { top: 60%; left: 30%; --fx: 40px;  --fy: 70px;   animation-duration: 6.5s; animation-delay: 3s; }
+body[data-time="evening"] .fireflies span:nth-child(6)  { top: 25%; left: 50%; --fx: -60px; --fy: 50px;   animation-duration: 7.5s; animation-delay: 1.5s; }
+body[data-time="evening"] .fireflies span:nth-child(7)  { top: 55%; left: 85%; --fx: 30px;  --fy: -90px;  animation-duration: 8.5s; animation-delay: 4s; }
+body[data-time="evening"] .fireflies span:nth-child(8)  { top: 75%; left: 15%; --fx: 90px;  --fy: -30px;  animation-duration: 6s;  animation-delay: 2.5s; }
+body[data-time="evening"] .fireflies span:nth-child(9)  { top: 35%; left: 65%; --fx: -40px; --fy: 60px;   animation-duration: 9.5s; animation-delay: .8s; }
+body[data-time="evening"] .fireflies span:nth-child(10) { top: 45%; left: 10%; --fx: 70px;  --fy: 40px;   animation-duration: 7s;  animation-delay: 3.5s; }
+
+/* ============================================================
+   TIME-BASED LANDSCAPE CHANGES
+   ============================================================ */
+
+/* Morning: misty mountains, hidden sun */
+body[data-time="morning"] .zen-sun { opacity: .2; filter: blur(4px); }
+body[data-time="morning"] .mountain { opacity: .6; }
+body[data-time="morning"] .cloud { background: rgba(200,210,205,.2); animation-duration: 30s; }
+
+/* Afternoon: bright, clear */
+body[data-time="afternoon"] .zen-sun { opacity: .6; }
+body[data-time="afternoon"] .mountain.m1 { background: linear-gradient(180deg, rgba(100,160,120,.08) 0%, rgba(80,140,100,.04) 100%); }
+body[data-time="afternoon"] .cloud { background: rgba(255,255,255,.2); }
+
+/* Evening: golden sun, warm mountains */
+body[data-time="evening"] .zen-sun {
+  background: radial-gradient(circle at 40% 40%, #ff9060, #ff6030);
+  box-shadow: 0 0 50px rgba(255,96,48,.3), 0 0 100px rgba(255,144,96,.15);
+  width: 50px; height: 50px;
+  top: 20px;
+  opacity: .7;
+}
+
+body[data-time="evening"] .mountain.m1 { background: linear-gradient(180deg, rgba(80,60,50,.1) 0%, rgba(60,40,30,.05) 100%); }
+body[data-time="evening"] .mountain.m2 { background: linear-gradient(180deg, rgba(90,70,60,.08) 0%, rgba(70,50,40,.04) 100%); }
+body[data-time="evening"] .cloud { background: rgba(255,180,120,.12); }
+
+/* Night: hide sun, dark mountains, show stars */
+body[data-time="night"] .zen-sun { display: none; }
+body[data-time="night"] .mountain.m1 { background: linear-gradient(180deg, rgba(20,20,40,.15) 0%, rgba(10,10,30,.08) 100%); }
+body[data-time="night"] .mountain.m2 { background: linear-gradient(180deg, rgba(25,25,50,.1) 0%, rgba(15,15,35,.05) 100%); }
+body[data-time="night"] .mountain.m3 { background: linear-gradient(180deg, rgba(30,30,60,.08) 0%, transparent 100%); }
+body[data-time="night"] .cloud { background: rgba(100,120,160,.08); animation-duration: 80s; }
+
+/* ============================================================
+   SEASONAL LANDSCAPE CHANGES
+   ============================================================ */
+
+/* Spring: pink-tinted mountains */
+body[data-season="spring"] .mountain.m1 { background: linear-gradient(180deg, rgba(200,140,160,.07) 0%, rgba(180,120,140,.03) 100%); }
+
+/* Summer: green lush mountains, bright sky */
+body[data-season="summer"] .mountain.m1 { background: linear-gradient(180deg, rgba(60,160,120,.1) 0%, rgba(40,140,100,.05) 100%); }
+body[data-season="summer"] .mountain.m2 { background: linear-gradient(180deg, rgba(80,180,140,.07) 0%, rgba(60,160,120,.03) 100%); }
+body[data-season="summer"] .zen-sun { box-shadow: 0 0 50px rgba(255,208,96,.35), 0 0 100px rgba(255,208,96,.15); }
+
+/* Autumn: orange/brown mountains */
+body[data-season="autumn"] .mountain.m1 { background: linear-gradient(180deg, rgba(180,120,60,.1) 0%, rgba(160,100,40,.05) 100%); }
+body[data-season="autumn"] .mountain.m2 { background: linear-gradient(180deg, rgba(160,100,50,.08) 0%, rgba(140,80,30,.04) 100%); }
+body[data-season="autumn"] .zen-sun { background: radial-gradient(circle at 40% 40%, #ffc870, #ff9830); }
+
+/* Winter: snow-capped white mountains */
+body[data-season="winter"] .mountain.m1 {
+  background: linear-gradient(180deg, rgba(220,230,240,.12) 0%, rgba(200,210,220,.06) 100%);
+}
+body[data-season="winter"] .mountain.m1::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 30px;
+  background: rgba(255,255,255,.15);
+  border-radius: 0 0 50% 50%;
+}
+body[data-season="winter"] .mountain.m2 {
+  background: linear-gradient(180deg, rgba(210,220,235,.1) 0%, rgba(190,200,215,.05) 100%);
+}
+body[data-season="winter"] .zen-sun { opacity: .25; filter: blur(2px); }
+body[data-season="winter"] .cloud { background: rgba(200,210,230,.15); }
+
+/* ============================================================
+   EXTRA RAIN COLUMNS (morning)
+   ============================================================ */
+
+.rain-column:nth-child(13) { left: 15%; height: 30px; animation-duration: 1.5s; animation-delay: .25s; }
+.rain-column:nth-child(14) { left: 28%; height: 38px; animation-duration: 1.3s; animation-delay: .65s; }
+.rain-column:nth-child(15) { left: 38%; height: 25px; animation-duration: 1.8s; animation-delay: .45s; }
+.rain-column:nth-child(16) { left: 52%; height: 42px; animation-duration: 1.2s; animation-delay: .75s; }
+.rain-column:nth-child(17) { left: 68%; height: 30px; animation-duration: 1.6s; animation-delay: .35s; }
+.rain-column:nth-child(18) { left: 78%; height: 36px; animation-duration: 1.4s; animation-delay: .85s; }
+
+/* Winter: hide rain, show extra snow on landscape */
+body[data-season="winter"] .rain-overlay { display: none !important; }
+
+/* Summer: morning rain is tropical — thicker drops */
+body[data-season="summer"] .rain-column {
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(100,180,210,.5), transparent);
+}
